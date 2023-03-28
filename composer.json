@@ -1,5 +1,7 @@
 {
     "name": "goosfraba/krd-rastin-sdk",
+    "description": "The SDK for KRD Rastin 2.0 protocol",
+    "keywords": ["krd", "rastin", "rastin 2.0", "sdk", "api"],
     "type": "library",
     "require": {
         "php": ">=7.4",
