@@ -20,9 +20,13 @@ class KrdRastinSoapApiTest extends TestCase
 
     protected function setUp(): void
     {
+        $dsn = getenv("KRD_RASTIN_DSN");
+        if (!$dsn) {
+            $this->markTestSkipped("KRD_RASTIN_DSN must be set in phpunit.xml");
+        }
 
-        $this->api = KrdRastinSoapApiFactory::getInstance()->createDemo(
-            $this->authorization()
+        $this->api = KrdRastinSoapApiFactory::getInstance()->createFromDsn(
+            Dsn::parse($dsn)
         );
     }
 
@@ -32,7 +36,7 @@ class KrdRastinSoapApiTest extends TestCase
     public function itThrowsAuthenticationExceptionOnInvalidCredentials(): void
     {
         $this->api = KrdRastinSoapApiFactory::getInstance()->createDemo(
-            Authorization::loginAndPassword("unknwon", "wrong-password".mt_rand(0, 10000))
+            Authorization::loginAndPassword("unknwon", "wrong-password" . mt_rand(0, 10000))
         );
         $this->expectException(AuthenticationException::class);
         $this->api->verifyIsIdCardCanceled(
@@ -268,16 +272,5 @@ class KrdRastinSoapApiTest extends TestCase
             [VerifyConsumerIsAliveRequest::create("14221400248", "DELFFINA", "TONDOSSSS"), VerifyConsumerIsAliveStatus::alive()],
             [VerifyConsumerIsAliveRequest::create("04220800193", "AUSTIN", "HIPNAROWICZ"), VerifyConsumerIsAliveStatus::incorrectData()]
         ];
-    }
-
-    private function authorization(): Authorization
-    {
-        $login = getenv("AUTH_LOGIN");
-        $password = getenv("AUTH_PASSWORD");
-        if (!($login && $password)) {
-            $this->markTestSkipped("AUTH_LOGIN ans AUTH_PASSWORD must be set in phpunit.xml");
-        }
-
-        return Authorization::loginAndPassword($login, $password);
     }
 }

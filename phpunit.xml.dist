@@ -13,8 +13,7 @@
         >
 
     <php>
-        <env name="AUTH_LOGIN" value="" />
-        <env name="AUTH_PASSWORD" value="" />
+        <env name="KRD_RASTIN_DSN" value="demo://login:password@default" />
     </php>
 
     <testsuites>

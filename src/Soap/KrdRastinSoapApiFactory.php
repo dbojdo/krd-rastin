@@ -66,6 +66,23 @@ final class KrdRastinSoapApiFactory
     }
 
     /**
+     * Creates the API from given DSN
+     *
+     * @param Dsn $dsn
+     * @return KrdRastinSoapApi
+     */
+    public function createFromDsn(Dsn $dsn): KrdRastinSoapApi
+    {
+        $authorization = Authorization::loginAndPassword($dsn->login(), $dsn->password());
+        switch ($dsn->env()) {
+            case Dsn::ENV_PROD:
+                return $this->createProd($authorization);
+            default:
+                return $this->createDemo($authorization);
+        }
+    }
+
+    /**
      * Creates a SoapApiExecutor
      *
      * @param KrdRastinWsdl $wsdl
