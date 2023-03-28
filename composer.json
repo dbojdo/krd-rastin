@@ -3,6 +3,7 @@
     "description": "The SDK for KRD Rastin 2.0 protocol",
     "keywords": ["krd", "rastin", "rastin 2.0", "sdk", "api"],
     "type": "library",
+    "license": "MIT",
     "require": {
         "php": ">=7.4",
         "webit/soap-api": "^3.0.0",
