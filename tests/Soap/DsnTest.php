@@ -11,7 +11,7 @@ class DsnTest extends TestCase
      */
     public function itParsesDsn(): void
     {
-        $dsn = Dsn::parse("demo://some-login:some-password@default");
+        $dsn = Dsn::parse("krd+rastin://some-login:some-password@demo");
         $this->assertEquals("demo", $dsn->env());
         $this->assertEquals("some-login", $dsn->login());
         $this->assertEquals("some-password", $dsn->password());
@@ -20,9 +20,18 @@ class DsnTest extends TestCase
     /**
      * @test
      */
-    public function itThrowsExceptionOnInvalidEnv(): void
+    public function itThrowsExceptionOnInvalidScheme(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        Dsn::parse("unknown-env://some-login:some-password@default");
+        Dsn::parse("unknown-scheme://some-login:some-password@default");
+    }
+
+    /**
+     * @test
+     */
+    public function itThrowsExceptionOnInvalidHost(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Dsn::parse("krd+rastin://some-login:some-password@unknown-host");
     }
 }

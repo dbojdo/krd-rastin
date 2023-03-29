@@ -4,6 +4,7 @@ namespace Goosfraba\KrdRastin\Soap;
 
 final class Dsn
 {
+    private const SCHEME = "krd+rastin";
     public const ENV_DEMO = "demo";
     public const ENV_PROD = "prod";
 
@@ -47,7 +48,7 @@ final class Dsn
     }
 
     /**
-     * Parses given DSN string (env://login:password@default)
+     * Parses given DSN string (krd+rastin://login:password@demo)
      * Env must be one of "demo" or "prod"
      *
      * @param string $dsn
@@ -56,8 +57,12 @@ final class Dsn
     public static function parse(string $dsn): self
     {
         $arUrl = parse_url($dsn);
+        if ($arUrl['scheme'] !== self::SCHEME) {
+            throw new \InvalidArgumentException(sprintf("The scheme must be \"%s\" only.", self::SCHEME));
+        }
+
         return new self(
-            $arUrl['scheme'] ?? "",
+            $arUrl['host'] ?? "",
             $arUrl['user'] ?? "",
             $arUrl['pass'] ?? ""
         );

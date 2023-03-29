@@ -13,7 +13,7 @@
         >
 
     <php>
-        <env name="KRD_RASTIN_DSN" value="demo://login:password@default" />
+        <env name="KRD_RASTIN_DSN" value="krd+rastin://login:password@demo" />
     </php>
 
     <testsuites>
