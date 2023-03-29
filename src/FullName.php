@@ -9,9 +9,7 @@ final class FullName
 {
     private string $name;
     private ?string $middleName;
-
     private string $lastNamePart1;
-
     private ?string $lastNamePart2;
 
     public function __construct(string $name, ?string $middleName, string $lastNamePart1, ?string $lastNamePart2 = null)
@@ -90,5 +88,17 @@ final class FullName
     public function lastName(): string
     {
         return $this->lastNamePart1() . $this->lastNamePart2();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function __toString(): string
+    {
+        return sprintf(
+            "%s %s",
+            trim(sprintf("%s %s", $this->name(), $this->middleName())),
+            $this->lastName()
+        );
     }
 }
