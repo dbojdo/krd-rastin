@@ -2,6 +2,7 @@
 
 namespace Goosfraba\KrdRastin\Soap;
 
+use Goosfraba\KrdRastin\Exception\GenericException;
 use Goosfraba\KrdRastin\VerifyConsumerIsAliveRequest;
 use Goosfraba\KrdRastin\VerifyConsumerIsAliveResponse;
 use Goosfraba\KrdRastin\VerifyIDCardRequest;
@@ -11,7 +12,6 @@ use Goosfraba\KrdRastin\VerifyConsumerIdentityNumberResponse;
 use Goosfraba\KrdRastin\VerifyIDCardResponse;
 use Goosfraba\KrdRastin\VerifyIsIDCardCanceledRequest;
 use Goosfraba\KrdRastin\VerifyIsIDCardCanceledResponse;
-use Webit\SoapApi\Executor\Exception\ExecutorException;
 use Webit\SoapApi\Executor\SoapApiExecutor;
 
 final class KrdRastinSoapApi implements KrdRastinApi
@@ -28,10 +28,12 @@ final class KrdRastinSoapApi implements KrdRastinApi
      */
     public function verifyConsumerIdentityNumber(VerifyConsumerIdentityNumberRequest $request): VerifyConsumerIdentityNumberResponse
     {
-        return $this->soapApiExecutor->executeSoapFunction(
-            "VerifyConsumerIdentityNumber",
+        $result = $this->soapApiExecutor->executeSoapFunction(
+            $function = "VerifyConsumerIdentityNumber",
             ["VerifyConsumerIdentityNumberRequest" => $request]
         );
+
+        return $this->assertResultType($result, VerifyConsumerIdentityNumberResponse::class, $function);
     }
 
     /**
@@ -39,10 +41,12 @@ final class KrdRastinSoapApi implements KrdRastinApi
      */
     public function verifyIdCard(VerifyIDCardRequest $request): VerifyIDCardResponse
     {
-        return $this->soapApiExecutor->executeSoapFunction(
-            "VerifyIDCard",
+        $result = $this->soapApiExecutor->executeSoapFunction(
+            $function = "VerifyIDCard",
             ["IDCardRequest" => $request]
         );
+
+        return $this->assertResultType($result, VerifyIDCardResponse::class, $function);
     }
 
     /**
@@ -50,21 +54,41 @@ final class KrdRastinSoapApi implements KrdRastinApi
      */
     public function verifyIsIdCardCanceled(VerifyIsIDCardCanceledRequest $request): VerifyIsIDCardCanceledResponse
     {
-        return $this->soapApiExecutor->executeSoapFunction(
-            "VerifyIsIDCardCanceled",
+        $result =  $this->soapApiExecutor->executeSoapFunction(
+            $function = "VerifyIsIDCardCanceled",
             [
                 "VerifyIsIDCardCanceledRequest" => $request
             ]
         );
+
+        return $this->assertResultType($result, VerifyIsIDCardCanceledResponse::class, $function);
     }
 
     public function verifyConsumerIsAlive(VerifyConsumerIsAliveRequest $request): VerifyConsumerIsAliveResponse
     {
-        return $this->soapApiExecutor->executeSoapFunction(
-            "VerifyConsumerIsAlive",
+        $result = $this->soapApiExecutor->executeSoapFunction(
+            $function = "VerifyConsumerIsAlive",
             [
                 "VerifyConsumerIsAliveRequest" => $request
             ]
+        );
+
+        return $this->assertResultType($result, VerifyConsumerIsAliveResponse::class, $function);
+    }
+
+    private function assertResultType($result, string $className, string $method)
+    {
+        if ($result instanceof $className) {
+            return $result;
+        }
+
+        throw new GenericException(
+            sprintf(
+                'Unexpected result type of method \"%s\". Expected type of \"%s\" but \"%s\" given.',
+                $method,
+                $className,
+                is_object($result) ? get_class($result) : gettype($result),
+            ),
         );
     }
 }

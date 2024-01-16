@@ -2,9 +2,12 @@
 
 namespace Goosfraba\KrdRastin\Soap;
 
+use Faker\Factory;
+use Faker\Generator;
 use Goosfraba\KrdRastin\Address;
 use Goosfraba\KrdRastin\AddressVerificationResult;
 use Goosfraba\KrdRastin\Exception\AuthenticationException;
+use Goosfraba\KrdRastin\Exception\GenericException;
 use Goosfraba\KrdRastin\Exception\ValidationException;
 use Goosfraba\KrdRastin\FullName;
 use Goosfraba\KrdRastin\VerifyConsumerIdentityNumberRequest;
@@ -13,13 +16,20 @@ use Goosfraba\KrdRastin\VerifyConsumerIsAliveStatus;
 use Goosfraba\KrdRastin\VerifyIDCardRequest;
 use Goosfraba\KrdRastin\VerifyIsIDCardCanceledRequest;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Webit\SoapApi\Executor\SoapApiExecutor;
 
 class KrdRastinSoapApiTest extends TestCase
 {
+    use ProphecyTrait;
+
+    private static Generator $faker;
     private KrdRastinSoapApi $api;
 
     protected function setUp(): void
     {
+        self::$faker = Factory::create('pl');
+
         $dsn = getenv("KRD_RASTIN_DSN");
         if (!$dsn) {
             $this->markTestSkipped("KRD_RASTIN_DSN must be set in phpunit.xml");
@@ -77,7 +87,7 @@ class KrdRastinSoapApiTest extends TestCase
                 ),
                 true,
                 new AddressVerificationResult(true, true, true, true, true),
-                new AddressVerificationResult()
+                new AddressVerificationResult(),
             ],
             "invalid address" => [
                 VerifyConsumerIdentityNumberRequest::create(
@@ -94,7 +104,7 @@ class KrdRastinSoapApiTest extends TestCase
                 ),
                 true,
                 new AddressVerificationResult(false, true, false, true, true),
-                new AddressVerificationResult()
+                new AddressVerificationResult(),
             ],
             "PESEL does not match the name" => [
                 VerifyConsumerIdentityNumberRequest::create(
@@ -111,7 +121,7 @@ class KrdRastinSoapApiTest extends TestCase
                 ),
                 false,
                 new AddressVerificationResult(),
-                new AddressVerificationResult()
+                new AddressVerificationResult(),
             ],
             "invalid PESEL" => [
                 VerifyConsumerIdentityNumberRequest::create(
@@ -128,8 +138,8 @@ class KrdRastinSoapApiTest extends TestCase
                 ),
                 false,
                 new AddressVerificationResult(),
-                new AddressVerificationResult()
-            ]
+                new AddressVerificationResult(),
+            ],
         ];
     }
 
@@ -156,7 +166,7 @@ class KrdRastinSoapApiTest extends TestCase
                     date_create_immutable("2014-09-25"),
                     date_create_immutable("2024-09-25")
                 ),
-                true // WYDANY
+                true, // WYDANY
             ],
             [
                 VerifyIDCardRequest::create(
@@ -167,7 +177,7 @@ class KrdRastinSoapApiTest extends TestCase
                     date_create_immutable("2014-09-24"),
                     date_create_immutable("2024-09-24")
                 ),
-                false // UNIEWAŻNIONY
+                false, // UNIEWAŻNIONY
             ],
             [
                 VerifyIDCardRequest::create(
@@ -178,7 +188,7 @@ class KrdRastinSoapApiTest extends TestCase
                     date_create_immutable("2017-09-19"),
                     date_create_immutable("2027-09-19")
                 ),
-                true // WYDANY
+                true, // WYDANY
             ],
             "invalid ID Card" => [
                 VerifyIDCardRequest::create(
@@ -189,7 +199,7 @@ class KrdRastinSoapApiTest extends TestCase
                     date_create_immutable("2017-09-19"),
                     date_create_immutable("2027-09-19")
                 ),
-                false
+                false,
             ],
             "invalid valid to date" => [
                 VerifyIDCardRequest::create(
@@ -199,8 +209,8 @@ class KrdRastinSoapApiTest extends TestCase
                     "134189",
                     date_create_immutable("1992-09-19")
                 ),
-                false
-            ]
+                false,
+            ],
         ];
     }
 
@@ -238,19 +248,19 @@ class KrdRastinSoapApiTest extends TestCase
         return [
             [
                 VerifyIsIDCardCanceledRequest::create("DAS", "678134"),
-                false
+                false,
             ],
             [
                 VerifyIsIDCardCanceledRequest::create("VCX", "959351"),
-                true
+                true,
             ],
             [
                 VerifyIsIDCardCanceledRequest::create("AAP", "234189"),
-                false
+                false,
             ],
             "invalid ID card" => [
                 VerifyIsIDCardCanceledRequest::create("ANC", "134189"),
-                false
+                false,
             ],
         ];
     }
@@ -270,7 +280,30 @@ class KrdRastinSoapApiTest extends TestCase
     {
         return [
             [VerifyConsumerIsAliveRequest::create("14221400248", "DELFFINA", "TONDOSSSS"), VerifyConsumerIsAliveStatus::alive()],
-            [VerifyConsumerIsAliveRequest::create("04220800193", "AUSTIN", "HIPNAROWICZ"), VerifyConsumerIsAliveStatus::incorrectData()]
+            [VerifyConsumerIsAliveRequest::create("04220800193", "AUSTIN", "HIPNAROWICZ"), VerifyConsumerIsAliveStatus::incorrectData()],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function itAssertsResultType(): void
+    {
+        $soapExecutor = $this->prophesize(SoapApiExecutor::class);
+        $soapExecutor->executeSoapFunction(
+            'VerifyConsumerIdentityNumber',
+            [
+                'VerifyConsumerIdentityNumberRequest' => $request = VerifyConsumerIdentityNumberRequest::create(
+                    '8723345602',
+                    self::$faker->firstName(),
+                    self::$faker->lastName(),
+                )
+            ]
+        )->willReturn(null);
+
+        $this->expectException(GenericException::class);
+
+        $api = new KrdRastinSoapApi($soapExecutor->reveal());
+        $api->verifyConsumerIdentityNumber($request);
     }
 }

@@ -7,7 +7,9 @@
     "require": {
         "php": ">=7.4",
         "webit/soap-api": "^3.0.0",
-        "jms/serializer": "^3.23"
+        "jms/serializer": "^3.23",
+        "phpspec/prophecy-phpunit": "^2.1",
+        "fakerphp/faker": "^1.23"
     },
     "autoload": {
         "psr-4": {
